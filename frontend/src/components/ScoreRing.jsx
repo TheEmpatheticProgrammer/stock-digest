@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 function getColor(score) {
-  if (score >= 75) return '#10B981'; // emerald
-  if (score >= 55) return '#3B82F6'; // blue
-  if (score >= 40) return '#F59E0B'; // amber
-  return '#EF4444';                  // red
+  if (score >= 75) return '#10B981'; // vibrant emerald
+  if (score >= 55) return '#8B5CF6'; // vibrant purple
+  if (score >= 40) return '#F59E0B'; // vibrant amber
+  return '#EF4444';                  // vibrant red
 }
 
 /**
@@ -27,7 +27,7 @@ export default function ScoreRing({ score, size = 88, strokeWidth = 8 }) {
 
   return (
     <div style={{ width: size, height: size }} className="relative flex-shrink-0">
-      <svg width={size} height={size} className="-rotate-90">
+      <svg width={size} height={size} className="-rotate-90" style={{ filter: 'drop-shadow(0 2px 8px rgba(139, 92, 246, 0.3))' }}>
         {/* Background track */}
         <circle
           cx={size / 2}

@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 
 const PILLAR_COLORS = {
-  vol: '#3B82F6',      // blue
+  vol: '#8B5CF6',      // vibrant purple
   quality: '#10B981',  // emerald
-  regime: '#8B5CF6',   // violet
+  regime: '#3B82F6',   // bright blue
   info: '#F59E0B',     // amber
 };
 
 const PILLAR_LABELS = {
-  vol: 'Vol-Edge',
-  quality: 'Quality Gate',
-  regime: 'Regime',
-  info: 'Info-Edge',
+  vol: 'Options Edge',
+  quality: 'Fundamentals',
+  regime: 'Market Timing',
+  info: 'Catalysts',
 };
 
 const PILLAR_MAX = 25;

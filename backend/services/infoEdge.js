@@ -5,14 +5,16 @@ import {
   parseCongressional,
   parseUpgradeDowngrade,
 } from './finnhub.js';
-import { getTickerSentiment } from './reddit.js';
 import { differenceInDays } from 'date-fns';
 
 /**
- * Score Info-Edge pillar (0–25).
+ * Score Catalysts pillar (0–25).
+ *
+ * Analyzes news sentiment, insider activity, analyst ratings, and earnings proximity
+ * using Finnhub financial news data.
  *
  * @param {object} finnhubData   - { sentiment, insiders, recommendations, upgrades, congressional }
- * @param {string} ticker        - Ticker symbol (for Reddit lookup)
+ * @param {string} ticker        - Ticker symbol
  * @param {object} yahooSummary  - quoteSummary result (for calendarEvents)
  * @returns {{ total, sub, reasons }}
  */
@@ -24,19 +26,17 @@ export function scoreInfoEdge(finnhubData, ticker, yahooSummary) {
   let earningsProxScore = 0;
 
   // ── 1. News Sentiment (0–8) ───────────────────────────────────────────────
+  // Use Finnhub news sentiment exclusively (from major financial news sources)
   const bullishPct = parseSentiment(finnhubData?.sentiment);
-  // Combine Finnhub (weighted 70%) with Reddit (30%)
-  const redditData = getTickerSentiment(ticker);
-  const redditBullish = (redditData.sentimentScore + 1) / 2; // normalize -1..1 → 0..1
-  const redditWeight = redditData.mentions > 0 ? 0.3 : 0;
-  const finnhubWeight = 1 - redditWeight;
-  const combinedBullish = bullishPct * finnhubWeight + redditBullish * redditWeight;
 
-  newsScore = clamp(Math.round(combinedBullish * 8), 8);
-  if (combinedBullish >= 0.65) {
+  newsScore = clamp(Math.round(bullishPct * 8), 8);
+  if (bullishPct >= 0.65) {
     reasons.push(
-      `Bullish news sentiment at ${Math.round(combinedBullish * 100)}%` +
-        (redditData.mentions > 5 ? ` with ${redditData.mentions} Reddit mentions` : '')
+      `Strong bullish news sentiment at ${Math.round(bullishPct * 100)}% from financial media`
+    );
+  } else if (bullishPct >= 0.55) {
+    reasons.push(
+      `Positive news sentiment at ${Math.round(bullishPct * 100)}%`
     );
   }
 
@@ -118,8 +118,7 @@ export function scoreInfoEdge(finnhubData, ticker, yahooSummary) {
     sub: { newsScore, insiderScore, ratingScore, earningsProxScore },
     meta: {
       nextEarningsDate: nextEarningsDate?.toISOString() ?? null,
-      bullishPct: combinedBullish,
-      redditMentions: redditData.mentions,
+      bullishPct: bullishPct,
       analystUpgrades: ratingChange.upgrades,
       analystDowngrades: ratingChange.downgrades,
       congressionalBuys: congressional.congressionalBuys,

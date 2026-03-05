@@ -2,26 +2,48 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const POLL_INTERVAL = 30000; // 30s
 
-export default function useScanData() {
+/**
+ * Hook for fetching scan data
+ * @param {string|null} date - Optional date (YYYY-MM-DD) to fetch historical data. null = latest
+ */
+export default function useScanData(date = null) {
   const [cards, setCards] = useState(null);
   const [scanTimestamp, setScanTimestamp] = useState(null);
+  const [scanDate, setScanDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const lastTimestampRef = useRef(null);
 
   const fetchResults = useCallback(async () => {
     try {
-      const res = await fetch('/api/results');
+      // If date is provided, fetch historical data; otherwise fetch latest
+      const url = date ? `/api/scans/${date}` : '/api/results';
+      console.log('[useScanData] Fetching from:', url);
+      const res = await fetch(url);
+
       if (res.status === 204) {
         setIsLoading(false);
         return false; // no data yet
       }
+      if (res.status === 404) {
+        setError('No scan data available for this date');
+        setIsLoading(false);
+        return false;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const data = await res.json();
-      if (data.scanTimestamp !== lastTimestampRef.current) {
-        setCards(data.cards);
-        setScanTimestamp(data.scanTimestamp);
-        lastTimestampRef.current = data.scanTimestamp;
+
+      // Handle both old format (/api/results) and new format (/api/scans/:date)
+      const cardsData = data.cards || data.cards;
+      const timestamp = data.scanTimestamp || data.scanTimestamp;
+      const scanDateStr = data.scanDate || date;
+
+      if (timestamp !== lastTimestampRef.current || date) {
+        setCards(cardsData);
+        setScanTimestamp(timestamp);
+        setScanDate(scanDateStr);
+        lastTimestampRef.current = timestamp;
         setError(null);
       }
       setIsLoading(false);
@@ -31,18 +53,20 @@ export default function useScanData() {
       setIsLoading(false);
       return false;
     }
-  }, []);
+  }, [date]);
 
   // Initial fetch
   useEffect(() => {
     fetchResults();
   }, [fetchResults]);
 
-  // Polling
+  // Polling - only poll if viewing latest (no date specified)
   useEffect(() => {
-    const id = setInterval(fetchResults, POLL_INTERVAL);
-    return () => clearInterval(id);
-  }, [fetchResults]);
+    if (!date) {
+      const id = setInterval(fetchResults, POLL_INTERVAL);
+      return () => clearInterval(id);
+    }
+  }, [fetchResults, date]);
 
   const triggerScan = useCallback(async () => {
     try {
@@ -56,5 +80,13 @@ export default function useScanData() {
     }
   }, []);
 
-  return { cards, scanTimestamp, isLoading, error, triggerScan, refetch: fetchResults };
+  return {
+    cards,
+    scanTimestamp,
+    scanDate,
+    isLoading,
+    error,
+    triggerScan,
+    refetch: fetchResults
+  };
 }

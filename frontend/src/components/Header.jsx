@@ -12,67 +12,76 @@ function formatTime(ts) {
 function StatusBadge({ status, progress }) {
   if (status === 'running') {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full">
-        <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" />
+      <span className="flex items-center gap-2 text-xs font-bold text-white bg-white/20 backdrop-blur-sm border-2 border-white/30 px-3 py-1.5 rounded-full">
+        <span className="inline-block w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
         Scanning {progress}%
       </span>
     );
   }
   if (status === 'complete') {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-        <span className="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+      <span className="flex items-center gap-2 text-xs font-bold text-white bg-emerald-500/30 backdrop-blur-sm border-2 border-emerald-300/50 px-3 py-1.5 rounded-full">
+        <span className="inline-block w-2 h-2 bg-emerald-300 rounded-full" />
         Up to date
       </span>
     );
   }
   if (status === 'error') {
     return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
-        Scan error
+      <span className="flex items-center gap-2 text-xs font-bold text-white bg-red-500/30 backdrop-blur-sm border-2 border-red-300/50 px-3 py-1.5 rounded-full">
+        ⚠️ Scan error
       </span>
     );
   }
   return (
-    <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full">
+    <span className="text-xs font-bold text-white/70 bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full">
       Idle
     </span>
   );
 }
 
-export default function Header({ scanState, lastScanTime, onTriggerScan }) {
+export default function Header({ scanState, lastScanTime, onTriggerScan, onShowAbout }) {
   const isRunning = scanState?.status === 'running';
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-10 shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 py-4">
+    <header className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 sticky top-0 z-10 shadow-xl backdrop-blur-lg">
+      <div className="w-full px-6 py-5">
         <div className="flex items-center justify-between gap-4">
           {/* Brand */}
           <div>
-            <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">
-              Stock Digest
+            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+              📈 Stock Digest
             </h1>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-white/80 mt-1 font-medium">
               Daily Pre-Market S&P 500 Scanner · Top 10 by Composite Score
             </p>
           </div>
 
           {/* Right: status + last scan + button */}
-          <div className="flex items-center gap-3 flex-wrap justify-end">
+          <div className="flex items-center gap-4 flex-wrap justify-end">
             {lastScanTime && (
-              <span className="text-xs text-gray-400">
-                Last scan: <span className="text-gray-600 font-medium">{formatTime(lastScanTime)}</span>
+              <span className="text-xs text-white/70 font-medium">
+                Last scan: <span className="text-white font-semibold">{formatTime(lastScanTime)}</span>
               </span>
             )}
             <StatusBadge status={scanState?.status} progress={scanState?.progress} />
             <button
+              onClick={onShowAbout}
+              className="flex items-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl transition-all duration-200 bg-white/10 text-white border-2 border-white/30 hover:bg-white/20 hover:border-white/50 hover:scale-105 active:scale-95 backdrop-blur-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              About
+            </button>
+            <button
               onClick={onTriggerScan}
               disabled={isRunning}
               className={`
-                flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl transition-all
+                flex items-center gap-2 text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200
                 ${isRunning
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-900 text-white hover:bg-gray-700 active:scale-95 shadow-sm'}
+                  ? 'bg-white/20 text-white/50 cursor-not-allowed'
+                  : 'bg-white text-purple-600 hover:bg-purple-50 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl'}
               `}
             >
               {isRunning ? (
